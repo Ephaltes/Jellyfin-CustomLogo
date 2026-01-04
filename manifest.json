@@ -1,12 +1,20 @@
 [
   {
     "guid": "eb5d7894-8eef-4b36-aa6f-5d124e828ce1",
-    "name": "CustomLogo",
+    "name": "CustomBranding",
     "description": "Add the abiliy to replace the Jellyfin logo",
-    "owner": "Lacy",
+    "owner": "Ephaltes",
     "category": "General",
-    "imageUrl": "https://github.com/ImLacy/Jellyfin-CustomLogo/blob/main/logo.png?raw=true",
+    "imageUrl": "https://github.com/Ephaltes/Jellyfin-CustomLogo/blob/main/logo.png?raw=true",
     "versions": [
+      {
+        "version": "1.0.0.5",
+        "changelist": "Patched Logo image not working",
+        "targetAbi": "10.10.7.0",
+        "sourceUrl": "https://github.com/ephaltes/Jellyfin-CustomLogo/releases/download/1.0.0.5/CustomLogo.zip",
+        "checksum": "6f55f114651856f69db413983f620f99",
+        "timestamp": "2026-01-04T23:00:00"
+      },
       {
         "version": "1.0.0.4",
         "changelist": "Patched image and version after installation",

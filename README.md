@@ -26,7 +26,7 @@ This plugin allows you to replace the default Jellyfin logos.
     - Add a name
     - **URL:**
       ```
-      https://raw.githubusercontent.com/ImLacy/Jellyfin-CustomLogo/refs/heads/main/manifest.json
+      https://raw.githubusercontent.com/ephaltes/Jellyfin-CustomLogo/refs/heads/main/manifest.json
       ```
 4. Click **Save**.
 
