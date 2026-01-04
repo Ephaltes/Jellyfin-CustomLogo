@@ -8,6 +8,14 @@
     "imageUrl": "https://github.com/ImLacy/Jellyfin-CustomLogo/blob/main/logo.png?raw=true",
     "versions": [
       {
+        "version": "1.0.0.5",
+        "changelist": "Patched Logo image not working",
+        "targetAbi": "10.10.7.0",
+        "sourceUrl": "https://github.com/ephaltes/Jellyfin-CustomLogo/releases/download/1.0.0.5/CustomLogo.zip",
+        "checksum": "a3b9a031605290089bd73b3c127e32fd",
+        "timestamp": "2026-01-04T23:00:00"
+      },
+      {
         "version": "1.0.0.4",
         "changelist": "Patched image and version after installation",
         "targetAbi": "10.10.7.0",
