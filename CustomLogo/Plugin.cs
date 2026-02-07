@@ -12,7 +12,8 @@ using MediaBrowser.Model.Serialization;
 namespace CustomLogo;
 
 /// <summary>
-/// The main plugin.
+/// The main plugin for CustomLogo.
+/// Allows users to upload custom logos and banners for their Jellyfin instance.
 /// </summary>
 public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
@@ -31,7 +32,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override string Name => "CustomLogo";
 
     /// <inheritdoc />
-    public override Guid Id => Guid.Parse("eb5d7894-8eef-4b36-aa6f-5d124e828ce1");
+    public override Guid Id => Guid.Parse("45bdc089-e49a-46de-ae8c-f541873a2978");
 
     /// <summary>
     /// Gets the current plugin instance.

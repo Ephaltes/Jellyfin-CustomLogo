@@ -12,7 +12,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CustomLogo;
 
-public class LogoCopyService : IHostedService
+/// <summary>
+/// Background service that copies custom logos to the web path on startup.
+/// </summary>
+public class LogoCopyService : IHostedService, ILogoCopyService
 {
     private const string IconTransparentPattern = "icon-transparent*";
     private const string TouchIconPattern = "touchicon*";
@@ -20,11 +23,15 @@ public class LogoCopyService : IHostedService
     private const string BannerDarkPattern = "banner-dark*";
     private const string BannerLightPattern = "banner-light*";
 
-
     private readonly IApplicationPaths _appPaths;
     private readonly ILogger<LogoCopyService> _logger;
     private readonly string _logoDirectory;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LogoCopyService" /> class.
+    /// </summary>
+    /// <param name="logger">Logger instance.</param>
+    /// <param name="appPaths">Application paths service.</param>
     public LogoCopyService(ILogger<LogoCopyService> logger, IApplicationPaths appPaths)
     {
         _logger = logger;
@@ -32,8 +39,11 @@ public class LogoCopyService : IHostedService
         _logoDirectory = Path.Combine(_appPaths.PluginConfigurationsPath, Constants.FolderName);
     }
 
+    /// <inheritdoc />
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("CustomLogo service executing logo copy operation");
+
         await Task.CompletedTask;
 
         try
@@ -42,57 +52,125 @@ public class LogoCopyService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "CustomLogo: Failed to copy logos to web path");
+            _logger.LogError(ex, "CustomLogo service failed to copy logos to web path");
         }
     }
 
+    /// <inheritdoc />
     public Task StopAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Copies custom logos from plugin directory to the web path.
+    /// </summary>
     private void CopyLogosToWebPath()
     {
-        if (!Directory.Exists(_logoDirectory))
-        {
-            _logger.LogInformation("CustomLogo: No custom logo directory found, skipping copy");
+        if (!ValidateLogoDirectory())
             return;
-        }
 
-        string webPath = _appPaths.WebPath;
-        if (string.IsNullOrEmpty(webPath) || !Directory.Exists(webPath))
-        {
-            _logger.LogWarning("CustomLogo: Web path not found: {WebPath}", webPath);
+        if (!ValidateWebPath())
             return;
-        }
 
-        string iconPath = Path.Combine(_logoDirectory, Constants.LogoFileName);
-        string darkBannerPath = Path.Combine(_logoDirectory, Constants.BannerDarkFileName);
-        string lightBannerPath = Path.Combine(_logoDirectory, Constants.BannerLightFileName);
+        ReplaceFiles(Constants.LogoFileName, IconTransparentPattern, TouchIconPattern, FaviconPattern);
+        ReplaceFiles(Constants.BannerDarkFileName, BannerDarkPattern);
+        ReplaceFiles(Constants.BannerLightFileName, BannerLightPattern);
 
-        ReplaceFiles(iconPath, IconTransparentPattern, TouchIconPattern, FaviconPattern);
-        ReplaceFiles(darkBannerPath, BannerDarkPattern);
-        ReplaceFiles(lightBannerPath, BannerLightPattern);
+        _logger.LogInformation("Logo copy operation completed");
     }
 
-    private void ReplaceFiles(string pathToFile, params string[] patterns)
+    /// <summary>
+    /// Validates that the logo directory exists.
+    /// </summary>
+    /// <returns>True if valid, false otherwise.</returns>
+    private bool ValidateLogoDirectory()
     {
-        IReadOnlyCollection<string> filesToOverwrite = patterns
-                                                       .SelectMany(pattern => Directory.GetFiles(_appPaths.WebPath, pattern, SearchOption.AllDirectories))
-                                                       .ToList();
+        if (Directory.Exists(_logoDirectory))
+            return true;
 
-        _logger.LogDebug("Replacing following Files: {Files}", string.Join("\r\n", filesToOverwrite));
+        _logger.LogInformation("Custom logo directory not found at {LogoDirectory}, skipping copy operation",
+            _logoDirectory);
 
-        foreach (string destinationFile in filesToOverwrite)
+        return false;
+    }
+
+    /// <summary>
+    /// Validates that the web path exists.
+    /// </summary>
+    /// <returns>True if valid, false otherwise.</returns>
+    private bool ValidateWebPath()
+    {
+        string webPath = _appPaths.WebPath;
+
+        return !string.IsNullOrEmpty(webPath) && Directory.Exists(webPath);
+    }
+
+    /// <summary>
+    /// Copies a logo file to all matching pattern files in the web path.
+    /// </summary>
+    /// <param name="logoFileName">The source logo filename.</param>
+    /// <param name="patterns">The patterns to match for destination files.</param>
+    private void ReplaceFiles(string logoFileName, params string[] patterns)
+    {
+        string sourcePath = Path.Combine(_logoDirectory, logoFileName);
+
+        if (!File.Exists(sourcePath))
+            return;
+
+        _logger.LogInformation("Processing logo file: {LogoFileName}", logoFileName);
+
+        IReadOnlyCollection<string> destinationFiles = GetDestinationFiles(patterns);
+
+        if (destinationFiles.Count == 0)
+        {
+            _logger.LogWarning("No destination files found for patterns: {Patterns}",
+                string.Join(", ", patterns));
+            return;
+        }
+
+        CopyFileToDestinations(sourcePath, destinationFiles);
+    }
+
+    /// <summary>
+    /// Gets all destination files matching the specified patterns.
+    /// </summary>
+    /// <param name="patterns">The file patterns to search for.</param>
+    /// <returns>Collection of matching file paths.</returns>
+    private IReadOnlyCollection<string> GetDestinationFiles(params string[] patterns)
+    {
+        return patterns
+               .SelectMany(pattern => Directory.GetFiles(_appPaths.WebPath, pattern, SearchOption.AllDirectories))
+               .ToList();
+    }
+
+    /// <summary>
+    /// Copies the source file to all destination files.
+    /// </summary>
+    /// <param name="sourcePath">The source file path.</param>
+    /// <param name="destinationFiles">The destination file paths.</param>
+    private void CopyFileToDestinations(string sourcePath, IReadOnlyCollection<string> destinationFiles)
+    {
+        foreach (string destinationFile in destinationFiles)
         {
             try
             {
-                File.Copy(pathToFile, destinationFile, true);
-                _logger.LogInformation("Copied {Source} to {Target}", pathToFile, destinationFile);
+                File.Copy(sourcePath, destinationFile, true);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Unauthorized access while copying to {DestinationFile}",
+                    destinationFile);
+            }
+            catch (IOException ex)
+            {
+                _logger.LogError(ex, "IO error while copying to {DestinationFile}",
+                    destinationFile);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occured while replacing file {FileName}", destinationFile);
+                _logger.LogError(ex, "Unexpected error while copying to {DestinationFile}",
+                    destinationFile);
             }
         }
     }
