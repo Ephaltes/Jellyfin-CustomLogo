@@ -1,12 +1,20 @@
 [
   {
-    "guid": "eb5d7894-8eef-4b36-aa6f-5d124e828ce1",
+    "guid": "45bdc089-e49a-46de-ae8c-f541873a2978",
     "name": "CustomBranding",
     "description": "Add the abiliy to replace the Jellyfin logo",
     "owner": "Ephaltes",
     "category": "General",
     "imageUrl": "https://github.com/Ephaltes/Jellyfin-CustomLogo/blob/main/logo.png?raw=true",
     "versions": [
+      {
+        "version": "1.0.0.6",
+        "changelist": "Uploaded files saved to plugin configuration folder and will be deployed on startup - should fix docker use cases",
+        "targetAbi": "10.11.6.0",
+        "sourceUrl": "https://github.com/ephaltes/Jellyfin-CustomLogo/releases/download/1.0.0.6/CustomLogo.zip",
+        "checksum": "f19703dce202606d2086730f71fa1438",
+        "timestamp": "2026-02-07T21:00:00"
+      },
       {
         "version": "1.0.0.5",
         "changelist": "Patched Logo image not working",
